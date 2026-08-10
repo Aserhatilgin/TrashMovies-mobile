@@ -29,7 +29,11 @@ function releaseDateCutoff(): string {
 }
 
 export class TmdbClient {
-  constructor(private readonly readAccessToken: string) {}
+  private readonly readAccessToken: string;
+
+  constructor(readAccessToken: string) {
+    this.readAccessToken = readAccessToken;
+  }
 
   private async get(path: string, searchParams?: URLSearchParams): Promise<unknown> {
     const url = new URL(`${TMDB_API_BASE_URL}${path}`);
