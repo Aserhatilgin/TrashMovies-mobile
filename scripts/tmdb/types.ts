@@ -1,8 +1,19 @@
-export interface ImportConfig {
-  dryRun: true;
+interface BaseImportConfig {
   limit: number;
   tmdbReadAccessToken: string;
 }
+
+export interface DryRunImportConfig extends BaseImportConfig {
+  mode: 'dry-run';
+}
+
+export interface WriteImportConfig extends BaseImportConfig {
+  mode: 'write';
+  supabaseUrl: string;
+  supabaseServiceRoleKey: string;
+}
+
+export type ImportConfig = DryRunImportConfig | WriteImportConfig;
 
 export interface TmdbGenre {
   id: number;
@@ -90,4 +101,16 @@ export interface DryRunReport {
   candidatesEvaluated: number;
   acceptedMovies: AcceptedMovie[];
   rejectedMovies: RejectedMovie[];
+}
+
+export interface WriteFailure {
+  operation: string;
+  message: string;
+}
+
+export interface WriteReport {
+  moviesSynchronized: number;
+  genresSynchronized: number;
+  movieGenreRelationshipsSynchronized: number;
+  failures: WriteFailure[];
 }

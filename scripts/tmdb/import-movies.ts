@@ -5,6 +5,7 @@ import type {
   DryRunReport,
   RejectedMovie,
   RejectionReason,
+  WriteReport,
 } from './types.ts';
 
 function sanitizeForTerminal(value: string): string {
@@ -20,7 +21,7 @@ function addRejectionCount(
   }
 }
 
-function printReport(report: DryRunReport): void {
+function printDiscoveryReport(report: DryRunReport, mode: 'dry-run' | 'write'): void {
   const rejectionCounts = new Map<RejectionReason, number>();
   const unknownGenreIds = new Set<number>();
 
@@ -30,7 +31,7 @@ function printReport(report: DryRunReport): void {
   }
 
   console.log('\nTMDB catalog import report');
-  console.log('Mode: DRY RUN (no database writes)');
+  console.log(mode === 'dry-run' ? 'Mode: DRY RUN (no database writes)' : 'Mode: WRITE');
   console.log(`Requested accepted movies: ${report.requestedAcceptedCount}`);
   console.log(`Pages fetched: ${report.pagesFetched}`);
   console.log(`Candidates received: ${report.candidatesReceived}`);
@@ -72,7 +73,25 @@ function printReport(report: DryRunReport): void {
     console.log(`   Genres: ${genreSummary}`);
   }
 
-  console.log('\nDry run complete. No Supabase client was created and no data was written.');
+  if (mode === 'dry-run') {
+    console.log('\nDry run complete. No Supabase client was created and no data was written.');
+  }
+}
+
+function printWriteReport(report: WriteReport): void {
+  console.log('\nSupabase synchronization report');
+  console.log(`Movies synchronized: ${report.moviesSynchronized}`);
+  console.log(`Genres synchronized: ${report.genresSynchronized}`);
+  console.log(
+    `Movie-genre relationships synchronized: ${report.movieGenreRelationshipsSynchronized}`,
+  );
+  console.log(`Failures: ${report.failures.length}`);
+
+  for (const writeFailure of report.failures) {
+    console.log(
+      `- ${sanitizeForTerminal(writeFailure.operation)}: ${sanitizeForTerminal(writeFailure.message)}`,
+    );
+  }
 }
 
 async function main(): Promise<void> {
@@ -125,17 +144,44 @@ async function main(): Promise<void> {
     page += 1;
   }
 
-  printReport(report);
+  printDiscoveryReport(report, config.mode);
 
   if (report.acceptedMovies.length < config.limit) {
     throw new Error(
       `TMDB results were exhausted after accepting ${report.acceptedMovies.length} of ${config.limit} requested movies.`,
     );
   }
+
+  if (config.mode === 'write') {
+    let writeReport: WriteReport;
+
+    try {
+      const { SupabaseCatalogWriter } = await import('./supabase-writer.ts');
+      const writer = new SupabaseCatalogWriter(
+        config.supabaseUrl,
+        config.supabaseServiceRoleKey,
+      );
+      writeReport = await writer.synchronize(report.acceptedMovies);
+    } catch {
+      writeReport = {
+        moviesSynchronized: 0,
+        genresSynchronized: 0,
+        movieGenreRelationshipsSynchronized: 0,
+        failures: [{
+          operation: 'synchronize catalog',
+          message: 'The write operation failed. No credentials or server details are shown.',
+        }],
+      };
+    }
+
+    printWriteReport(writeReport);
+
+    if (writeReport.failures.length > 0) process.exitCode = 1;
+  }
 }
 
 main().catch((error: unknown) => {
   const message = error instanceof Error ? error.message : 'Unknown importer error.';
-  console.error(`TMDB dry run failed: ${message}`);
+  console.error(`TMDB catalog import failed: ${sanitizeForTerminal(message)}`);
   process.exitCode = 1;
 });
