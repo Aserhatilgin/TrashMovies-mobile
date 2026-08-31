@@ -105,11 +105,13 @@ export function MovieCard({ movie }: MovieCardProps) {
           <Text style={[styles.description, { color: theme.mutedText }]}>
             {movie.description}
           </Text>
-          <View style={[styles.rating, { backgroundColor: theme.primary }]}>
-            <Text style={[styles.ratingText, { color: theme.text }]}>
-              {lang.movieCard.imdbRating}: {movie.imdbRating.toFixed(1)}
-            </Text>
-          </View>
+          {movie.tmdbRating !== null && (
+            <View style={[styles.rating, { backgroundColor: theme.primary }]}>
+              <Text style={[styles.ratingText, { color: theme.text }]}>
+                {lang.movieCard.tmdbRating}: {movie.tmdbRating.toFixed(1)}
+              </Text>
+            </View>
+          )}
         </Animated.View>
       </View>
     </Pressable>

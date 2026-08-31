@@ -1,5 +1,10 @@
 // mobile/constants/Translations.ts
 export const tr = {
+  home: {
+    loadingMovie: 'Film yükleniyor',
+    loadMovieError: 'Film yüklenemedi.',
+    noMovieAvailable: 'Gösterilecek film bulunamadı.'
+  },
   auth: {
     loginTitle: 'Çöplüğe Hoş Geldin! 🗑️',
     loginSubtitle: 'En kötü filmleri keşfetmek ve oynamak için giriş yap.',
@@ -10,7 +15,7 @@ export const tr = {
     signUpLink: 'Kayıt Ol'
   },
   movieCard: {
-    imdbRating: 'IMDb puanı',
+    tmdbRating: 'TMDB puanı',
     showDetails: 'Film ayrıntılarını göster',
     showPoster: 'Film afişini göster',
     flipHint: 'Kartın diğer yüzünü görmek için iki kez dokun'

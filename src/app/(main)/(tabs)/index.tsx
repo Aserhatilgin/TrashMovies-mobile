@@ -1,21 +1,40 @@
-import { StyleSheet, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { MovieCard } from '../../../components/MovieCard';
 import { currentTheme as theme } from '../../../constants/Colors';
-import { Movie } from '../../../types/movie';
-
-const mockMovie: Movie = {
-  id: 'birdemic-shock-and-terror',
-  title: 'Birdemic: Shock and Terror',
-  description:
-    'A small town faces an unexplained attack by flocks of aggressive birds, forcing two unlikely heroes to fight for survival.',
-  posterUrl: 'https://upload.wikimedia.org/wikipedia/en/9/96/Birdemicposter.jpg',
-  imdbRating: 1.7,
-};
+import { currentLang as lang } from '../../../constants/Translations';
+import { useFeaturedMovie } from '../../../hooks/useFeaturedMovie';
 
 export default function HomeScreen() {
+  const { movie, isLoading, hasError } = useFeaturedMovie();
+
+  let content;
+  if (isLoading) {
+    content = (
+      <ActivityIndicator
+        accessibilityLabel={lang.home.loadingMovie}
+        color={theme.primary}
+        size="large"
+      />
+    );
+  } else if (hasError) {
+    content = (
+      <Text style={[styles.statusText, { color: theme.text }]}>
+        {lang.home.loadMovieError}
+      </Text>
+    );
+  } else if (movie === null) {
+    content = (
+      <Text style={[styles.statusText, { color: theme.mutedText }]}>
+        {lang.home.noMovieAvailable}
+      </Text>
+    );
+  } else {
+    content = <MovieCard movie={movie} />;
+  }
+
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
-      <MovieCard movie={mockMovie} />
+      {content}
     </View>
   );
 }
@@ -26,5 +45,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     padding: 24,
+  },
+  statusText: {
+    fontSize: 16,
+    textAlign: 'center',
   },
 });

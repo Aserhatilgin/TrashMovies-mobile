@@ -3,5 +3,5 @@ export interface Movie {
   title: string;
   description: string;
   posterUrl: string;
-  imdbRating: number;
+  tmdbRating: number | null;
 }
