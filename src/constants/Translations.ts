@@ -7,13 +7,17 @@ export const tr = {
     backToToday: 'Bugüne dön'
   },
   auth: {
-    loginTitle: 'Çöplüğe Hoş Geldin! 🗑️',
-    loginSubtitle: 'En kötü filmleri keşfetmek ve oynamak için giriş yap.',
+    initializing: 'Oturum yükleniyor',
+    brandName: 'Çöplük',
+    loginTitle: 'Çöplüğe Hoş Geldin',
+    loginSubtitle: 'En kötü filmleri keşfetmek ve oyunlarla puan toplamak için giriş yap.',
     emailPlaceholder: 'E-posta adresin',
     passwordPlaceholder: 'Şifren',
     loginButton: 'Giriş Yap',
     noAccountText: 'Henüz çöplüğe katılmadın mı? ',
-    signUpLink: 'Kayıt Ol'
+    signUpLink: 'Kayıt Ol',
+    registrationConfirmationTitle: 'E-postanı doğrula',
+    registrationConfirmationMessage: 'Hesabını etkinleştirmek için e-postandaki doğrulama bağlantısını aç.'
   },
   movieCard: {
     tmdbRating: 'TMDB puanı',

@@ -1,89 +1,72 @@
-import { useEffect, useState } from 'react';
-import { Redirect, Stack, useSegments } from 'expo-router';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { useEffect } from 'react';
+import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { AppState, Platform } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Provider, useDispatch, useSelector } from 'react-redux';
-import { supabase } from '../lib/supabase'; // supabase.ts yolun
-import { setAuth, clearAuth } from '../store/authSlice';
-import { RootState, store } from '../store';
 
-// 🧠 Redux ve Yönlendirme (Router) işlemlerini yapabilmek için
-// Provider'ın İÇİNDE olan yeni bir bileşen oluşturduk.
+import { supabase } from '../lib/supabase';
+import { store, type AppDispatch, type RootState } from '../store';
+import { clearAuth, setAuth } from '../store/authSlice';
+
 function InitialLayout() {
-  const { isAuthenticated } = useSelector((state: RootState) => state.auth);
-  const dispatch = useDispatch();
-  const segments = useSegments();
-  const [isSessionLoaded, setIsSessionLoaded] = useState(false);
+  const { isAuthenticated, isInitialized } = useSelector((state: RootState) => state.auth);
+  const dispatch = useDispatch<AppDispatch>();
 
   useEffect(() => {
-    let isMounted = true;
-
-    const loadSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-
-      if (!isMounted) {
-        return;
-      }
-
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session) {
-        dispatch(setAuth({ session, user: session.user }));
-      } else {
-        dispatch(clearAuth());
-      }
-
-      setIsSessionLoaded(true);
-    };
-
-    loadSession();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session) {
-        dispatch(setAuth({ session, user: session.user }));
-      } else {
+        dispatch(setAuth(session.user));
+      } else if (event === 'INITIAL_SESSION' || event === 'SIGNED_OUT') {
         dispatch(clearAuth());
       }
     });
 
-    return () => {
-      isMounted = false;
-      subscription.unsubscribe();
-    };
+    // initialize() reuses the client's bootstrap promise. Auth events provide
+    // the session; this only resolves an unexpected bootstrap failure.
+    void supabase.auth.initialize().then(({ error }) => {
+      if (error && !store.getState().auth.isInitialized) dispatch(clearAuth());
+    }).catch(() => {
+      if (!store.getState().auth.isInitialized) dispatch(clearAuth());
+    });
+
+    return () => subscription.unsubscribe();
   }, [dispatch]);
 
-  const inAuthGroup = segments[0] === '(auth)';
-  const inMainGroup = segments[0] === '(main)';
+  useEffect(() => {
+    if (Platform.OS === 'web') return;
 
-  if (!isSessionLoaded) {
-    return (
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-        <Stack.Screen name="(main)" options={{ headerShown: false }} />
-      </Stack>
-    );
-  }
+    const syncRefresh = (active: boolean): void => {
+      const operation = active
+        ? supabase.auth.startAutoRefresh()
+        : supabase.auth.stopAutoRefresh();
+      void operation.catch(() => console.warn('Unable to update auth refresh state.'));
+    };
 
-  if (isAuthenticated && inAuthGroup) {
-    return <Redirect href="/(main)/(drawer)/(tabs)" />;
-  }
-
-  if (!isAuthenticated && inMainGroup) {
-    return <Redirect href="/(auth)/login" />;
-  }
+    syncRefresh(AppState.currentState === 'active');
+    const subscription = AppState.addEventListener('change', (state) => {
+      syncRefresh(state === 'active');
+    });
+    return () => subscription.remove();
+  }, []);
 
   return (
     <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-      <Stack.Screen name="(main)" options={{ headerShown: false }} />
+      <Stack.Screen name="index" />
+      <Stack.Protected guard={isInitialized && !isAuthenticated}>
+        <Stack.Screen name="(auth)" />
+      </Stack.Protected>
+      <Stack.Protected guard={isInitialized && isAuthenticated}>
+        <Stack.Screen name="(main)" />
+      </Stack.Protected>
     </Stack>
   );
 }
 
-// Uygulamanın En Dış Katmanı
 export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <StatusBar style="light" />
-      {/* Redux Beynini Uygulamaya Bağlıyoruz */}
       <Provider store={store}>
         <InitialLayout />
       </Provider>

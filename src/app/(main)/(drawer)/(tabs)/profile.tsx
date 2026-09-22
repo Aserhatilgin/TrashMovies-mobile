@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import type { User } from '@supabase/supabase-js';
 import { router } from 'expo-router';
 import { Image, Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View, ActivityIndicator } from 'react-native';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 
 import { ProfileCard } from '../../../../components/ProfileCard';
 import { SavedMovieCard } from '../../../../components/SavedMovieCard';
@@ -13,12 +13,14 @@ import { useActivitySummary } from '../../../../hooks/useActivitySummary';
 import { useSavedMovies } from '../../../../hooks/useSavedMovies';
 import { supabase } from '../../../../lib/supabase';
 import type { RootState } from '../../../../store';
+import { clearAuth } from '../../../../store/authSlice';
 
 function metadataText(value: unknown): string | null {
   return typeof value === 'string' && value.trim() ? value.trim() : null;
 }
 
 export default function ProfileScreen() {
+  const dispatch = useDispatch();
   const user = useSelector((state: RootState) => state.auth.user) as User | null;
   const activity = useActivitySummary();
   const saved = useSavedMovies();
@@ -32,7 +34,7 @@ export default function ProfileScreen() {
 
   const handleLogout = async (): Promise<void> => {
     const { error } = await supabase.auth.signOut();
-    if (!error) router.replace('/(auth)/login');
+    if (!error) dispatch(clearAuth());
   };
 
   return (

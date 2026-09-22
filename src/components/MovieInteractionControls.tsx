@@ -48,26 +48,30 @@ export function MovieInteractionControls({
           {watched ? lang.interactions.watched : lang.interactions.markWatched}
         </Text>
       </Pressable>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={rating != null ? `${lang.interactions.yourRating}: ${rating}` : lang.interactions.rate}
-        accessibilityHint={!watched ? lang.interactions.watchBeforeRating : undefined}
-        accessibilityState={{ disabled: disabled || !watched }}
-        disabled={disabled || !watched}
-        onPress={(event) => { event.stopPropagation(); onRate(); }}
-        style={[styles.action, { opacity: disabled || !watched ? 0.45 : 1 }]}
-      >
-        <Ionicons name={rating != null ? 'star' : 'star-outline'} size={20} color={rating != null ? theme.primary : theme.text} />
-        <Text numberOfLines={1} style={[styles.label, { color: rating != null ? theme.primary : theme.text }]}>
-          {rating ?? lang.interactions.rate}
-        </Text>
-      </Pressable>
+      <View style={styles.actionSlot}>
+        {watched && (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={rating != null ? `${lang.interactions.yourRating}: ${rating}` : lang.interactions.rate}
+            accessibilityState={{ disabled }}
+            disabled={disabled}
+            onPress={(event) => { event.stopPropagation(); onRate(); }}
+            style={[styles.action, { opacity: disabled ? 0.45 : 1 }]}
+          >
+            <Ionicons name={rating != null ? 'star' : 'star-outline'} size={20} color={rating != null ? theme.primary : theme.text} />
+            <Text numberOfLines={1} style={[styles.label, { color: rating != null ? theme.primary : theme.text }]}>
+              {rating ?? lang.interactions.rate}
+            </Text>
+          </Pressable>
+        )}
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   actions: { flexDirection: 'row', borderTopWidth: 1, paddingTop: 10 },
+  actionSlot: { flex: 1 },
   action: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 4, minHeight: 44 },
   label: { fontSize: 10, fontWeight: '600', textAlign: 'center' },
 });

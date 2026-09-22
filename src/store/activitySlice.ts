@@ -44,7 +44,7 @@ const activitySlice = createSlice({
   extraReducers: (builder) => {
     builder
       .addCase(setAuth, (state, action) => {
-        const userId: string | null = action.payload.user?.id ?? null;
+        const userId = action.payload.id;
         if (state.userId !== userId) return { ...initialState, userId };
       })
       .addCase(clearAuth, () => initialState)

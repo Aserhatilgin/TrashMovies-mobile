@@ -1,157 +1,135 @@
-import React, { useState } from 'react';
+import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import { router } from 'expo-router';
+import { useState } from 'react';
 import {
-    View,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    StyleSheet,
-    KeyboardAvoidingView,
-    Platform,
-    ImageBackground,
-    Alert,
+  Alert,
+  ImageBackground,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
 import { currentTheme as theme } from '../../constants/Colors';
 import { currentLang as lang } from '../../constants/Translations';
-import { LinearGradient } from 'expo-linear-gradient';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
-import { supabase } from '@/src/lib/supabase';
+import { supabase } from '../../lib/supabase';
 
 export default function LoginScreen() {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
-    const handleLogin = async () => {
-        if (!email || !password) {
-            Alert.alert("Hata", "Lütfen e-posta ve şifre alanlarını doldurun.");
-            return;
-        }
+  const handleLogin = async () => {
+    if (!email || !password) {
+      Alert.alert('Hata', 'Lütfen e-posta ve şifre alanlarını doldurun.');
+      return;
+    }
 
-        // Supabase'den giriş kontrolü yapıyoruz
-        const { data, error } = await supabase.auth.signInWithPassword({
-            email: email,
-            password: password,
-        });
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
 
-        if (error) {
-            Alert.alert("Giriş Başarısız", "E-posta veya şifre hatalı.");
-        } else {
-            // Başarılıysa ana sayfaya fırlat
-            router.replace('/(main)/(drawer)/(tabs)');
-        }
-    };
+    if (error) {
+      Alert.alert('Giriş Başarısız', 'E-posta veya şifre hatalı.');
+    }
+  };
 
-    return (
-        <ImageBackground
-            // Arka plan için temsili karanlık bir sinema/film görseli
-            source={{ uri: 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=3540&auto=format&fit=crop' }}
-            style={styles.backgroundImage}
-            resizeMode="cover"
-            imageStyle={styles.backgroundImageInner}
-        >
-            {/* Karanlık gradyan katmanı - Yukarıdan aşağıya karararak yazıların okunmasını sağlar */}
-            <LinearGradient
-                colors={['rgba(17, 24, 39, 0.15)', 'rgba(29, 43, 69, 0.58)', 'rgba(17, 24, 39, 0.88)']}
-                style={styles.gradient}
+  return (
+    <ImageBackground
+      source={{ uri: 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=3540&auto=format&fit=crop' }}
+      style={styles.background}
+      imageStyle={styles.backgroundImage}
+      resizeMode="cover"
+    >
+      <LinearGradient
+        colors={[theme.background, theme.overlay, theme.background]}
+        locations={[0, 0.42, 1]}
+        style={styles.overlay}
+      >
+        <SafeAreaView style={styles.safeArea}>
+          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.keyboardArea}>
+            <ScrollView
+              contentContainerStyle={styles.content}
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={false}
             >
-                <SafeAreaView style={styles.safeArea}>
-                    <KeyboardAvoidingView
-                        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                        style={styles.container}
-                    >
-                        <View style={styles.formContainer}>
-                            {/* Başlık Alanı */}
-                            <Text style={[styles.title, { color: theme.text }]}>{lang.auth.loginTitle}</Text>
-                            <Text style={[styles.subtitle, { color: theme.mutedText }]}>{lang.auth.loginSubtitle}</Text>
+              <View style={styles.authContent}>
+                <View style={styles.brand}>
+                  <View style={[styles.brandIcon, { backgroundColor: theme.inputBg, borderColor: theme.inputBorder }]}>
+                    <Ionicons name="film-outline" size={26} color={theme.primary} />
+                  </View>
+                  <Text style={[styles.brandName, { color: theme.text }]}>{lang.auth.brandName}</Text>
+                </View>
 
-                            {/* Form Alanı (Şeffaf cam efekti - Glassmorphism) */}
-                            <TextInput
-                                style={[styles.input, { backgroundColor: 'rgba(31, 41, 55, 0.6)', borderColor: theme.inputBorder, color: theme.text }]}
-                                placeholder={lang.auth.emailPlaceholder}
-                                placeholderTextColor={theme.mutedText}
-                                value={email}
-                                onChangeText={setEmail}
-                                keyboardType="email-address"
-                                autoCapitalize="none"
-                            />
+                <Text style={[styles.title, { color: theme.text }]}>{lang.auth.loginTitle}</Text>
+                <Text style={[styles.subtitle, { color: theme.mutedText }]}>{lang.auth.loginSubtitle}</Text>
 
-                            <TextInput
-                                style={[styles.input, { backgroundColor: 'rgba(31, 41, 55, 0.6)', borderColor: theme.inputBorder, color: theme.text }]}
-                                placeholder={lang.auth.passwordPlaceholder}
-                                placeholderTextColor={theme.mutedText}
-                                value={password}
-                                onChangeText={setPassword}
-                                secureTextEntry
-                            />
+                <View style={[styles.authCard, { backgroundColor: theme.inputBg, borderColor: theme.inputBorder }]}>
+                  <TextInput
+                    style={[styles.input, { backgroundColor: theme.background, borderColor: theme.inputBorder, color: theme.text }]}
+                    placeholder={lang.auth.emailPlaceholder}
+                    placeholderTextColor={theme.mutedText}
+                    value={email}
+                    onChangeText={setEmail}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    autoComplete="email"
+                  />
+                  <TextInput
+                    style={[styles.input, { backgroundColor: theme.background, borderColor: theme.inputBorder, color: theme.text }]}
+                    placeholder={lang.auth.passwordPlaceholder}
+                    placeholderTextColor={theme.mutedText}
+                    value={password}
+                    onChangeText={setPassword}
+                    secureTextEntry
+                    autoComplete="current-password"
+                  />
+                  <Pressable
+                    accessibilityRole="button"
+                    onPress={() => { void handleLogin(); }}
+                    style={({ pressed }) => [styles.button, { backgroundColor: theme.primary, opacity: pressed ? 0.88 : 1 }]}
+                  >
+                    <Text style={[styles.buttonText, { color: theme.text }]}>{lang.auth.loginButton}</Text>
+                  </Pressable>
+                </View>
 
-                            {/* Giriş Butonu */}
-                            <TouchableOpacity
-                                style={[styles.button, { backgroundColor: theme.primary }]}
-                                onPress={handleLogin}
-                                activeOpacity={0.8}
-                            >
-                                <Text style={styles.buttonText}>{lang.auth.loginButton}</Text>
-                            </TouchableOpacity>
-
-                            {/* Kayıt Ol Linki */}
-                            <View style={styles.footer}>
-                                <Text style={{ color: theme.mutedText }}>{lang.auth.noAccountText}</Text>
-                                <TouchableOpacity onPress={() => router.push('/(auth)/register')}>
-                                    <Text style={[styles.link, { color: theme.primary }]}>{lang.auth.signUpLink}</Text>
-                                </TouchableOpacity>
-                            </View>
-                        </View>
-                    </KeyboardAvoidingView>
-                </SafeAreaView>
-            </LinearGradient>
-        </ImageBackground>
-    );
+                <View style={styles.footer}>
+                  <Text style={[styles.footerText, { color: theme.mutedText }]}>{lang.auth.noAccountText}</Text>
+                  <Pressable accessibilityRole="link" onPress={() => router.push('/(auth)/register')} style={styles.signUpLink}>
+                    <Text style={[styles.signUpText, { color: theme.primary }]}>{lang.auth.signUpLink}</Text>
+                  </Pressable>
+                </View>
+              </View>
+            </ScrollView>
+          </KeyboardAvoidingView>
+        </SafeAreaView>
+      </LinearGradient>
+    </ImageBackground>
+  );
 }
 
 const styles = StyleSheet.create({
-    backgroundImage: { flex: 1, width: '100%', height: '100%' },
-    backgroundImageInner: {
-        width: '100%',
-        height: '100%',
-        opacity: 0.95,
-    },
-    gradient: { flex: 1 },
-    safeArea: { flex: 1 },
-    container: {
-        flex: 1,
-        justifyContent: 'flex-end', // İçeriği zarifçe ekranın altına doğru yaslar
-        paddingBottom: 50
-    },
-    formContainer: { paddingHorizontal: 24, width: '100%' },
-    title: {
-        fontSize: 36,
-        fontWeight: '900',
-        marginBottom: 8,
-        textAlign: 'center',
-        textShadowColor: 'rgba(0, 0, 0, 0.75)', // Başlığa sinematik bir gölge
-        textShadowOffset: { width: -1, height: 1 },
-        textShadowRadius: 10
-    },
-    subtitle: { fontSize: 16, marginBottom: 32, textAlign: 'center', lineHeight: 22 },
-    input: {
-        borderWidth: 1,
-        borderRadius: 12,
-        padding: 18,
-        marginBottom: 16,
-        fontSize: 16
-    },
-    button: {
-        padding: 18,
-        borderRadius: 12,
-        alignItems: 'center',
-        marginTop: 8,
-        shadowColor: "#ef4444", // Butona parlayan kırmızı bir aura efekti
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 5,
-        elevation: 8
-    },
-    buttonText: { color: '#ffffff', fontSize: 18, fontWeight: 'bold' },
-    footer: { flexDirection: 'row', justifyContent: 'center', marginTop: 32 },
-    link: { fontWeight: 'bold', fontSize: 16 }
+  background: { flex: 1 },
+  backgroundImage: { opacity: 0.8 },
+  overlay: { flex: 1 },
+  safeArea: { flex: 1 },
+  keyboardArea: { flex: 1 },
+  content: { flexGrow: 1, justifyContent: 'center', paddingHorizontal: 24, paddingTop: 36, paddingBottom: 84 },
+  authContent: { width: '100%', maxWidth: 400, alignSelf: 'center' },
+  brand: { alignItems: 'center', gap: 10, marginBottom: 30 },
+  brandIcon: { width: 54, height: 54, borderRadius: 16, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  brandName: { fontSize: 18, fontWeight: '800', letterSpacing: 1.2 },
+  title: { fontSize: 27, fontWeight: '800', textAlign: 'center', marginBottom: 8 },
+  subtitle: { fontSize: 14, lineHeight: 21, textAlign: 'center', marginBottom: 26, paddingHorizontal: 8 },
+  authCard: { borderWidth: 1, borderRadius: 20, padding: 18, gap: 12 },
+  input: { height: 52, borderWidth: 1, borderRadius: 12, paddingHorizontal: 16, fontSize: 16 },
+  button: { height: 52, borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginTop: 4 },
+  buttonText: { fontSize: 16, fontWeight: '800' },
+  footer: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', marginTop: 18 },
+  footerText: { fontSize: 14 },
+  signUpLink: { minHeight: 44, justifyContent: 'center' },
+  signUpText: { fontSize: 14, fontWeight: '700' },
 });

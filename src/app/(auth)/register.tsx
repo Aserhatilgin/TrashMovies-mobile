@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, SafeAreaView, Alert } from 'react-native';
 import { router } from 'expo-router';
 import { currentTheme as theme } from '../../constants/Colors';
+import { currentLang as lang } from '../../constants/Translations';
 import { supabase } from '@/src/lib/supabase';
 
 export default function RegisterScreen() {
@@ -23,10 +24,8 @@ export default function RegisterScreen() {
 
   if (error) {
     Alert.alert("Kayıt Başarısız", error.message);
-  } else {
-    Alert.alert("Başarılı", "Kayıt oldun! Hoş geldin.");
-    // Başarılıysa içeri al
-    router.replace('/(main)/(drawer)/(tabs)');
+  } else if (!data.session) {
+    Alert.alert(lang.auth.registrationConfirmationTitle, lang.auth.registrationConfirmationMessage);
   }
 };
 
