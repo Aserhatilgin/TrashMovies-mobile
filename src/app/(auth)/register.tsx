@@ -26,7 +26,7 @@ export default function RegisterScreen() {
   } else {
     Alert.alert("Başarılı", "Kayıt oldun! Hoş geldin.");
     // Başarılıysa içeri al
-    router.replace('/(main)/(tabs)');
+    router.replace('/(main)/(drawer)/(tabs)');
   }
 };
 

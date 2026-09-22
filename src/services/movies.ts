@@ -3,6 +3,10 @@ import type { DailyMovie, Movie } from '../types/movie';
 
 const TMDB_POSTER_BASE_URL = 'https://image.tmdb.org/t/p/w500';
 
+export function posterUrlFromPath(path: string): string {
+  return `${TMDB_POSTER_BASE_URL}${path}`;
+}
+
 interface MovieRow {
   id: string;
   title: string;
@@ -35,7 +39,7 @@ function mapMovieRow(row: MovieRow): Movie {
     id: row.id,
     title: row.title,
     description: row.overview,
-    posterUrl: `${TMDB_POSTER_BASE_URL}${row.poster_path}`,
+    posterUrl: posterUrlFromPath(row.poster_path),
     tmdbRating: row.tmdb_rating,
   };
 }

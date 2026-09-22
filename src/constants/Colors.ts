@@ -6,7 +6,8 @@ export const Colors = {
     primary: '#ef4444', // Çöp kırmızısı
     inputBg: '#f3f4f6',
     inputBorder: '#d1d5db',
-    mutedText: '#6b7280'
+    mutedText: '#6b7280',
+    overlay: 'rgba(17, 24, 39, 0.35)'
   },
   dark: {
     background: '#111827',
@@ -14,7 +15,8 @@ export const Colors = {
     primary: '#ef4444',
     inputBg: '#1f2937',
     inputBorder: '#374151',
-    mutedText: '#9ca3af'
+    mutedText: '#9ca3af',
+    overlay: 'rgba(0, 0, 0, 0.7)'
   }
 };
 // Şimdilik default olarak dark temayı kullanalım

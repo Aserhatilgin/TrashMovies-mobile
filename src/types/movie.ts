@@ -10,3 +10,10 @@ export interface DailyMovie {
   scheduledDate: string;
   movie: Movie;
 }
+
+export interface SavedMovie {
+  id: string;
+  title: string;
+  posterUrl: string;
+  savedAt: string;
+}

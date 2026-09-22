@@ -1,8 +1,9 @@
-import { useRef, useState } from 'react';
+import { type ReactNode, useRef, useState } from 'react';
 import {
   Animated,
   Image,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -13,11 +14,12 @@ import { Movie } from '../types/movie';
 
 interface MovieCardProps {
   movie: Movie;
+  backActions?: ReactNode;
 }
 
 const FLIP_DURATION_MS = 500;
 
-export function MovieCard({ movie }: MovieCardProps) {
+export function MovieCard({ movie, backActions }: MovieCardProps) {
   const [isFlipped, setIsFlipped] = useState(false);
   const flipProgress = useRef(new Animated.Value(0)).current;
 
@@ -101,17 +103,25 @@ export function MovieCard({ movie }: MovieCardProps) {
             },
           ]}
         >
-          <Text style={[styles.backTitle, { color: theme.text }]}>{movie.title}</Text>
-          <Text style={[styles.description, { color: theme.mutedText }]}>
-            {movie.description}
-          </Text>
-          {movie.tmdbRating !== null && (
-            <View style={[styles.rating, { backgroundColor: theme.primary }]}>
-              <Text style={[styles.ratingText, { color: theme.text }]}>
-                {lang.movieCard.tmdbRating}: {movie.tmdbRating.toFixed(1)}
-              </Text>
-            </View>
-          )}
+          <ScrollView
+            style={styles.backDetails}
+            contentContainerStyle={styles.backDetailsContent}
+            showsVerticalScrollIndicator={false}
+            nestedScrollEnabled
+          >
+            <Text style={[styles.backTitle, { color: theme.text }]}>{movie.title}</Text>
+            <Text style={[styles.description, { color: theme.mutedText }]}>
+              {movie.description}
+            </Text>
+            {movie.tmdbRating !== null && (
+              <View style={[styles.rating, { backgroundColor: theme.primary }]}>
+                <Text style={[styles.ratingText, { color: theme.text }]}>
+                  {lang.movieCard.tmdbRating}: {movie.tmdbRating.toFixed(1)}
+                </Text>
+              </View>
+            )}
+          </ScrollView>
+          {backActions}
         </Animated.View>
       </View>
     </Pressable>
@@ -138,9 +148,10 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   backFace: {
-    justifyContent: 'center',
-    padding: 24,
+    padding: 16,
   },
+  backDetails: { flex: 1 },
+  backDetailsContent: { flexGrow: 1, justifyContent: 'center', paddingVertical: 12 },
   poster: {
     flex: 1,
     width: '100%',
@@ -155,14 +166,14 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   backTitle: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: '800',
     marginBottom: 20,
     textAlign: 'center',
   },
   description: {
-    fontSize: 16,
-    lineHeight: 24,
+    fontSize: 15,
+    lineHeight: 22,
     textAlign: 'center',
   },
   rating: {

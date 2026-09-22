@@ -1,33 +1,57 @@
-import { Drawer } from 'expo-router/drawer';
-import { DrawerToggleButton } from '@react-navigation/drawer';
-import { currentTheme as theme } from '../../constants/Colors';
+import { Ionicons } from '@expo/vector-icons';
+import { router, Stack } from 'expo-router';
+import { Pressable, StyleSheet } from 'react-native';
+import { useSelector } from 'react-redux';
 
-export default function MainLayout() {
+import { currentTheme as theme } from '../../constants/Colors';
+import { currentLang as lang } from '../../constants/Translations';
+import { useDailyActivityRecorder } from '../../hooks/useDailyActivityRecorder';
+import type { RootState } from '../../store';
+
+export default function MainStackLayout() {
+  const userId = useSelector((state: RootState) => state.auth.user?.id ?? null);
+  useDailyActivityRecorder(userId);
+
   return (
-    <Drawer
-      screenOptions={{
-        headerShown: true,
-        headerStyle: {
-          backgroundColor: theme.background,
-          shadowOpacity: 0,
-          elevation: 0,
-        },
-        headerTintColor: theme.text,
-        headerLeft: () => <DrawerToggleButton tintColor={theme.text} />,
-        drawerStyle: {
-          backgroundColor: theme.background,
-        },
-        drawerActiveTintColor: theme.primary,
-        drawerInactiveTintColor: theme.text,
-      }}
-    >
-      <Drawer.Screen
-        name="(tabs)"
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="(drawer)" />
+      <Stack.Screen
+        name="saved-movies"
         options={{
-          title: 'Çöplük',
-          headerTitle: 'Çöplük',
+          headerShown: true,
+          title: lang.profile.savedMovies,
+          headerLeft: () => (
+            <Pressable
+              accessibilityLabel={lang.profile.closeSavedMovies}
+              accessibilityRole="button"
+              hitSlop={8}
+              onPress={() => router.back()}
+              style={styles.closeButton}
+            >
+              <Ionicons name="arrow-down" size={24} color={theme.text} />
+            </Pressable>
+          ),
+          animation: 'slide_from_bottom',
+          headerTitleAlign: 'center',
+          headerStyle: { backgroundColor: theme.background },
+          headerTintColor: theme.text,
         }}
       />
-    </Drawer>
+      <Stack.Screen
+        name="daily-games"
+        options={{
+          headerShown: true,
+          title: lang.game.dailyTitle,
+          headerBackButtonDisplayMode: 'minimal',
+          headerTitleAlign: 'center',
+          headerStyle: { backgroundColor: theme.background },
+          headerTintColor: theme.text,
+        }}
+      />
+    </Stack>
   );
 }
+
+const styles = StyleSheet.create({
+  closeButton: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+});

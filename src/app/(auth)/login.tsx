@@ -37,7 +37,7 @@ export default function LoginScreen() {
             Alert.alert("Giriş Başarısız", "E-posta veya şifre hatalı.");
         } else {
             // Başarılıysa ana sayfaya fırlat
-            router.replace('/(main)/(tabs)');
+            router.replace('/(main)/(drawer)/(tabs)');
         }
     };
 

@@ -63,7 +63,7 @@ function InitialLayout() {
   }
 
   if (isAuthenticated && inAuthGroup) {
-    return <Redirect href="/(main)/(tabs)" />;
+    return <Redirect href="/(main)/(drawer)/(tabs)" />;
   }
 
   if (!isAuthenticated && inMainGroup) {
