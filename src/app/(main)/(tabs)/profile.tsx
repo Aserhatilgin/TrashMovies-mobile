@@ -30,7 +30,7 @@ const handleLogout = async () => {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, alignItems: 'center', padding: 20, paddingTop: 50 },
+  container: { flex: 1, alignItems: 'center', padding: 20 },
   avatarContainer: { alignItems: 'center', marginBottom: 40 },
   name: { fontSize: 24, fontWeight: 'bold', marginTop: 10 },
   logoutButton: {

@@ -1,5 +1,5 @@
 import { supabase } from '../lib/supabase';
-import type { Movie } from '../types/movie';
+import type { DailyMovie, Movie } from '../types/movie';
 
 const TMDB_POSTER_BASE_URL = 'https://image.tmdb.org/t/p/w500';
 
@@ -9,7 +9,25 @@ interface MovieRow {
   overview: string;
   poster_path: string;
   tmdb_rating: number | null;
-  tmdb_vote_count: number;
+}
+
+interface DailyMovieRow {
+  scheduled_date: string;
+  movies: MovieRow;
+}
+
+function istanbulDate(date: Date): string {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Europe/Istanbul',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(date);
+
+  const getPart = (type: Intl.DateTimeFormatPartTypes): string =>
+    parts.find((part) => part.type === type)?.value ?? '';
+
+  return `${getPart('year')}-${getPart('month')}-${getPart('day')}`;
 }
 
 function mapMovieRow(row: MovieRow): Movie {
@@ -22,18 +40,21 @@ function mapMovieRow(row: MovieRow): Movie {
   };
 }
 
-export async function fetchFeaturedMovie(): Promise<Movie | null> {
+export async function fetchDailyMoviesHistory(): Promise<DailyMovie[]> {
   const { data, error } = await supabase
-    .from('movies')
-    .select('id, title, overview, poster_path, tmdb_rating, tmdb_vote_count')
-    .not('tmdb_rating', 'is', null)
-    .order('tmdb_vote_count', { ascending: false })
-    .limit(1)
-    .maybeSingle();
+    .from('daily_movies')
+    .select('scheduled_date, movies!daily_movies_movie_id_fkey(id, title, overview, poster_path, tmdb_rating)')
+    .lte('scheduled_date', istanbulDate(new Date()))
+    .order('scheduled_date', { ascending: false })
+    .limit(30)
+    .overrideTypes<DailyMovieRow[]>();
 
   if (error) {
-    throw new Error('Unable to fetch the featured movie.');
+    throw new Error('Unable to fetch daily movie history.');
   }
 
-  return data === null ? null : mapMovieRow(data as MovieRow);
+  return (data ?? []).map((row) => ({
+    scheduledDate: row.scheduled_date,
+    movie: mapMovieRow(row.movies),
+  })).reverse();
 }

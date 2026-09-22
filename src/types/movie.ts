@@ -5,3 +5,8 @@ export interface Movie {
   posterUrl: string;
   tmdbRating: number | null;
 }
+
+export interface DailyMovie {
+  scheduledDate: string;
+  movie: Movie;
+}

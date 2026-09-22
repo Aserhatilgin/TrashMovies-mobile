@@ -3,7 +3,8 @@ export const tr = {
   home: {
     loadingMovie: 'Film yükleniyor',
     loadMovieError: 'Film yüklenemedi.',
-    noMovieAvailable: 'Gösterilecek film bulunamadı.'
+    noMovieAvailable: 'Gösterilecek film bulunamadı.',
+    backToToday: 'Bugüne dön'
   },
   auth: {
     loginTitle: 'Çöplüğe Hoş Geldin! 🗑️',

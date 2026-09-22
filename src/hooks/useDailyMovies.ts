@@ -1,16 +1,16 @@
 import { useEffect, useState } from 'react';
 
-import { fetchFeaturedMovie } from '../services/movies';
-import type { Movie } from '../types/movie';
+import { fetchDailyMoviesHistory } from '../services/movies';
+import type { DailyMovie } from '../types/movie';
 
-interface FeaturedMovieState {
-  movie: Movie | null;
+interface DailyMoviesState {
+  dailyMovies: DailyMovie[];
   isLoading: boolean;
   hasError: boolean;
 }
 
-export function useFeaturedMovie(): FeaturedMovieState {
-  const [movie, setMovie] = useState<Movie | null>(null);
+export function useDailyMovies(): DailyMoviesState {
+  const [dailyMovies, setDailyMovies] = useState<DailyMovie[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
 
@@ -19,10 +19,10 @@ export function useFeaturedMovie(): FeaturedMovieState {
 
     const loadMovie = async (): Promise<void> => {
       try {
-        const featuredMovie = await fetchFeaturedMovie();
+        const history = await fetchDailyMoviesHistory();
         if (!isMounted) return;
 
-        setMovie(featuredMovie);
+        setDailyMovies(history);
       } catch {
         if (!isMounted) return;
 
@@ -39,5 +39,5 @@ export function useFeaturedMovie(): FeaturedMovieState {
     };
   }, []);
 
-  return { movie, isLoading, hasError };
+  return { dailyMovies, isLoading, hasError };
 }
