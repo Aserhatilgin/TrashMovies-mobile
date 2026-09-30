@@ -1,3 +1,5 @@
+import { createHash } from 'node:crypto';
+
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
 import type {
@@ -16,6 +18,20 @@ interface IdByTmdbIdRow {
 interface MovieGenreRow {
   movie_id: string;
   genre_id: string;
+}
+
+export interface CatalogMovieRow {
+  id: string;
+  tmdb_id: number;
+  title: string;
+  release_date: string | null;
+  imdb_id: string | null;
+  imdb_rating: number | null;
+}
+
+export interface DailyMoviesSnapshot {
+  count: number;
+  sha256: string;
 }
 
 function failure(operation: string): WriteFailure {
@@ -65,6 +81,49 @@ export class SupabaseCatalogWriter {
     } catch {
       throw new Error('Could not initialize the administrative Supabase client.');
     }
+  }
+
+  async readMoviesByTmdbIds(tmdbIds: number[]): Promise<CatalogMovieRow[]> {
+    const result = await this.client
+      .from('movies')
+      .select('id,tmdb_id,title,release_date,imdb_id,imdb_rating')
+      .in('tmdb_id', tmdbIds);
+    if (result.error || !result.data) {
+      throw new Error('Could not read catalog movies from Supabase.');
+    }
+    return result.data as CatalogMovieRow[];
+  }
+
+  async readMovieGenreRelationships(movieIds: string[]): Promise<MovieGenreRow[]> {
+    const result = await this.client
+      .from('movie_genres')
+      .select('movie_id,genre_id')
+      .in('movie_id', movieIds);
+    if (result.error || !result.data) {
+      throw new Error('Could not read catalog movie-genre relationships from Supabase.');
+    }
+    return result.data as MovieGenreRow[];
+  }
+
+  async readDailyMoviesSnapshot(): Promise<DailyMoviesSnapshot> {
+    const rows: unknown[] = [];
+    const pageSize = 1000;
+    for (let offset = 0; ; offset += pageSize) {
+      const result = await this.client
+        .from('daily_movies')
+        .select('*')
+        .order('scheduled_date', { ascending: true })
+        .range(offset, offset + pageSize - 1);
+      if (result.error || !result.data) {
+        throw new Error('Could not read daily_movies from Supabase.');
+      }
+      rows.push(...result.data);
+      if (result.data.length < pageSize) break;
+    }
+    return {
+      count: rows.length,
+      sha256: createHash('sha256').update(JSON.stringify(rows)).digest('hex'),
+    };
   }
 
   async synchronize(movies: AcceptedMovie[]): Promise<WriteReport> {

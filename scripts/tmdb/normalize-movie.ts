@@ -73,6 +73,7 @@ export function normalizeGenres(genres: TmdbGenre[]): Map<number, NormalizedGenr
 export function normalizeMovie(
   candidate: TmdbMovieCandidate,
   genresByTmdbId: ReadonlyMap<number, NormalizedGenre>,
+  enforceDiscoveryFilters = true,
 ): NormalizeResult {
   const reasons: RejectionReason[] = [];
   const tmdbId = Number.isInteger(candidate.id) && Number(candidate.id) > 0
@@ -93,10 +94,19 @@ export function normalizeMovie(
   if (overview === null || overview.length < MIN_OVERVIEW_LENGTH) reasons.push('missing_overview');
   if (posterPath === null) reasons.push('missing_poster');
   if (releaseDate !== null && !isValidDate(releaseDate)) reasons.push('invalid_release_date');
-  if (rating === null || rating < MIN_TMDB_RATING || rating > MAX_TMDB_RATING) {
+  if (
+    rating === null ||
+    (enforceDiscoveryFilters
+      ? rating < MIN_TMDB_RATING || rating > MAX_TMDB_RATING
+      : rating < 0 || rating > 10)
+  ) {
     reasons.push('rating_out_of_range');
   }
-  if (voteCount === null || !Number.isInteger(voteCount) || voteCount < MIN_VOTE_COUNT) {
+  if (
+    voteCount === null ||
+    !Number.isInteger(voteCount) ||
+    voteCount < (enforceDiscoveryFilters ? MIN_VOTE_COUNT : 0)
+  ) {
     reasons.push('insufficient_votes');
   }
   if (popularity !== null && popularity < 0) reasons.push('invalid_popularity');

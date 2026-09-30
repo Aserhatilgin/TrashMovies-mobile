@@ -113,6 +113,79 @@ export class TmdbClient {
     });
   }
 
+  async fetchMovieDetails(tmdbId: number): Promise<TmdbMovieCandidate> {
+    if (!Number.isInteger(tmdbId) || tmdbId < 1) {
+      throw new Error('TMDB movie details require a positive integer ID.');
+    }
+
+    const payload = await this.get(
+      `/movie/${tmdbId}`,
+      new URLSearchParams({ language: TMDB_LANGUAGE }),
+    );
+
+    if (
+      !isRecord(payload) ||
+      payload.id !== tmdbId ||
+      !Array.isArray(payload.genres) ||
+      payload.genres.some(
+        (genre) =>
+          !isRecord(genre) ||
+          !Number.isInteger(genre.id) ||
+          Number(genre.id) < 1 ||
+          typeof genre.name !== 'string' ||
+          genre.name.trim() === '',
+      )
+    ) {
+      throw new Error(`TMDB returned invalid details for movie ${tmdbId}.`);
+    }
+
+    return {
+      ...payload,
+      genre_ids: payload.genres.map((genre) => (genre as TmdbGenre).id),
+    };
+  }
+
+  async searchMoviesByTitleAndYear(
+    title: string,
+    year: number,
+    page = 1,
+  ): Promise<TmdbDiscoverPage> {
+    if (title.trim() === '' || !Number.isInteger(year) || year < 1) {
+      throw new Error('TMDB movie search requires a title and release year.');
+    }
+    if (!Number.isInteger(page) || page < 1 || page > MAX_TMDB_PAGE) {
+      throw new Error(`TMDB page must be between 1 and ${MAX_TMDB_PAGE}.`);
+    }
+
+    const payload = await this.get(
+      '/search/movie',
+      new URLSearchParams({
+        include_adult: 'false',
+        language: TMDB_LANGUAGE,
+        page: String(page),
+        query: title,
+        year: String(year),
+      }),
+    );
+
+    if (
+      !isRecord(payload) ||
+      !Number.isInteger(payload.page) ||
+      !Number.isInteger(payload.total_pages) ||
+      !Array.isArray(payload.results)
+    ) {
+      throw new Error('TMDB returned an invalid movie search response.');
+    }
+
+    return {
+      page: payload.page as number,
+      totalPages: Math.min(payload.total_pages as number, MAX_TMDB_PAGE),
+      results: payload.results.map((result): TmdbMovieCandidate =>
+        isRecord(result) ? result : {},
+      ),
+    };
+  }
+
   async fetchMovieCandidates(page: number): Promise<TmdbDiscoverPage> {
     if (!Number.isInteger(page) || page < 1 || page > MAX_TMDB_PAGE) {
       throw new Error(`TMDB page must be between 1 and ${MAX_TMDB_PAGE}.`);
