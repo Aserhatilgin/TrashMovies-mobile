@@ -38,7 +38,7 @@ function InitialLayout() {
   }, [dispatch]);
 
   useEffect(() => {
-    if (userId) void dispatch(initializeUserDomainForSession(userId));
+    if (userId) void dispatch(initializeUserDomainForSession({ userId, sessionGeneration }));
   }, [dispatch, userId, sessionGeneration]);
 
   useEffect(() => {

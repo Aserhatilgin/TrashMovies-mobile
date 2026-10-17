@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { Redirect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import {
   ActivityIndicator, Image, Pressable, ScrollView, StyleSheet, Text, TextInput,
@@ -25,10 +25,10 @@ import {
   completeOnboarding, fetchOnboardingGenres, fetchOnboardingMovies, saveOnboardingProgress,
   type OnboardingGenre, type OnboardingMovie,
 } from '../../services/onboarding';
-import { initializeUserDomain, type UserDomainBootstrap } from '../../services/userDomain';
 import { OnboardingOperations, onboardingErrorCode } from '../../features/onboarding/onboardingOperations';
 import { store, type AppDispatch, type RootState } from '../../store';
-import { acceptCompletedUserDomain } from '../../store/userDomainSlice';
+import { initializeUserDomainForSession } from '../../store/userDomainSlice';
+import { selectAppRoute } from '../../store/userDomainRouting';
 
 type LoadState = 'idle' | 'loading' | 'ready' | 'error';
 type ErrorKind = 'invalid' | 'save' | 'conflict' | 'complete' | null;
@@ -60,6 +60,8 @@ export default function OnboardingIndex() {
   const preview = __DEV__ && params.preview === '1';
   const userId = useSelector((state: RootState) => state.auth.user?.id);
   const sessionGeneration = useSelector((state: RootState) => state.auth.sessionGeneration);
+  const route = useSelector(selectAppRoute);
+  if (!preview && route === 'main') return <Redirect href="/(main)/(drawer)/(tabs)" />;
   return userId ? <OnboardingFlow key={userId + ':' + sessionGeneration + ':' + preview}
     userId={userId} sessionGeneration={sessionGeneration} preview={preview} /> : null;
 }
@@ -72,10 +74,12 @@ function OnboardingFlow({ userId, sessionGeneration, preview }: { userId: string
       const auth = store.getState().auth;
       return auth.sessionGeneration === sessionGeneration ? auth.user?.id ?? null : null;
     },
-    initialize: initializeUserDomain,
+    initialize: (signal) => dispatch(initializeUserDomainForSession({
+      userId, sessionGeneration, refresh: true,
+    }, { signal })).unwrap(),
     save: saveOnboardingProgress,
     complete: completeOnboarding,
-  }), [userId, sessionGeneration, preview]);
+  }), [dispatch, userId, sessionGeneration, preview]);
   const { width } = useWindowDimensions();
   const [boot, setBoot] = useState<LoadState>(preview ? 'ready' : 'loading');
   const [bootAttempt, setBootAttempt] = useState(0);
@@ -99,13 +103,6 @@ function OnboardingFlow({ userId, sessionGeneration, preview }: { userId: string
     return () => { unsubscribe(); operations.invalidate(); };
   }, [operations, userId, sessionGeneration]);
 
-  const routeCompleted = (domain: UserDomainBootstrap) => {
-    if (!domain.onboarding.requiredCompleted || domain.profile.id !== userId) return;
-    dispatch(acceptCompletedUserDomain(userId));
-    // The root route is always available, including before protected routes rerender.
-    router.replace('/');
-  };
-
   useEffect(() => {
     if (preview) return;
     const generation = operations.capture();
@@ -113,11 +110,8 @@ function OnboardingFlow({ userId, sessionGeneration, preview }: { userId: string
       try {
         const domain = await operations.initialize();
         if (!operations.isCurrent(generation) || !domain) return;
-        if (domain.onboarding.requiredCompleted) {
-          dispatch(acceptCompletedUserDomain(userId));
-          router.replace('/');
-          return;
-        }
+        // The canonical refresh has already updated the selector used by routing.
+        if (domain.onboarding.requiredCompleted) return;
         const rows = await operations.network((signal) => fetchOnboardingGenres(signal));
         if (!operations.isCurrent(generation)) return;
         const progress = domain.onboarding.requiredProgress!;
@@ -132,7 +126,7 @@ function OnboardingFlow({ userId, sessionGeneration, preview }: { userId: string
       }
     };
     void load();
-  }, [operations, preview, userId, bootAttempt, dispatch, router]);
+  }, [operations, preview, bootAttempt]);
 
   useEffect(() => {
     if ((step !== 'liked_genres' && step !== 'disliked_genres' && !result) || genreStatus !== 'idle') return;
@@ -189,12 +183,10 @@ function OnboardingFlow({ userId, sessionGeneration, preview }: { userId: string
       if (!upcoming) throw new Error('Invalid onboarding step.');
       const outcome = await operations.submit(snapshot, upcoming, finish);
       if (!operations.isCurrent(generation) || !outcome) return;
-      if (outcome.kind === 'reconciled') {
-        routeCompleted(outcome.domain);
-      } else if (outcome.kind === 'completed') {
+      if (outcome.kind === 'completed') {
         setDraft(reconcileDraftGenres(hydrateDraft(outcome.responses), genres));
         setResult(true);
-      } else {
+      } else if (outcome.kind === 'saved') {
         setDraft(snapshot);
         setStep(upcoming);
         setMoviePage(0);
@@ -215,7 +207,7 @@ function OnboardingFlow({ userId, sessionGeneration, preview }: { userId: string
     try {
       const domain = await operations.initialize();
       if (!operations.isCurrent(generation) || !domain) return;
-      if (domain.onboarding.requiredCompleted) { routeCompleted(domain); return; }
+      if (domain.onboarding.requiredCompleted) return;
       const progress = domain.onboarding.requiredProgress!;
       const restored = reconcileDraftGenres(hydrateDraft(progress.responses), genres);
       setDraft(restored);
@@ -239,7 +231,6 @@ function OnboardingFlow({ userId, sessionGeneration, preview }: { userId: string
       const domain = await operations.initialize();
       if (!operations.isCurrent(generation) || !domain) return;
       if (!domain.onboarding.requiredCompleted) throw new Error('Completion routing not confirmed.');
-      routeCompleted(domain);
     } catch {
       if (operations.isCurrent(generation)) setErrorKind('complete');
     } finally {

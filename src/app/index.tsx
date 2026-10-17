@@ -11,6 +11,7 @@ import { initializeUserDomainForSession } from '../store/userDomainSlice';
 export default function Index() {
   const dispatch = useDispatch<AppDispatch>();
   const userId = useSelector((state: RootState) => state.auth.user?.id ?? null);
+  const sessionGeneration = useSelector((state: RootState) => state.auth.sessionGeneration);
   const route = useSelector(selectAppRoute);
 
   if (route === 'loading') {
@@ -30,7 +31,7 @@ export default function Index() {
         <Text style={[styles.errorText, { color: theme.text }]}>{lang.onboarding.bootstrapError}</Text>
         <Pressable
           accessibilityRole="button"
-          onPress={() => { if (userId) void dispatch(initializeUserDomainForSession(userId)); }}
+          onPress={() => { if (userId) void dispatch(initializeUserDomainForSession({ userId, sessionGeneration })); }}
           style={[styles.retryButton, { backgroundColor: theme.primary }]}
         >
           <Text style={[styles.retryText, { color: theme.text }]}>{lang.onboarding.retry}</Text>

@@ -44,3 +44,6 @@ app-example
 /android
 
 scripts/tmdb/importer.local.env
+
+# Local auth test credentials
+scripts/auth/local/
