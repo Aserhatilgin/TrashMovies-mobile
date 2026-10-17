@@ -134,7 +134,8 @@ export function validStep(step: StepId, draft: OnboardingDraft): boolean {
   switch (step) {
     case 'display_name': {
       const name = draft.display_name?.trim() ?? '';
-      return name.length >= 1 && name.length <= 60;
+      const length = Array.from(name).length;
+      return length >= 1 && length <= 60;
     }
     case 'avatar_choice': return !!draft.avatar_choice;
     case 'liked_genres': return validUnique(draft.liked_genres, 1, 5) && draft.liked_genres!.every(isUuid);

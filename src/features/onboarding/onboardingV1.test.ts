@@ -40,6 +40,24 @@ test('V1 uses exact twelve stable steps and core validation', () => {
   }), false);
 });
 
+test('display name trims whitespace and enforces the ASCII 1–60 character boundary', () => {
+  for (const display_name of [undefined, '', ' \t\n ']) {
+    assert.equal(validStep('display_name', { display_name }), false);
+  }
+  for (const display_name of ['a', '  a  ', 'a'.repeat(60), `  ${'a'.repeat(60)}  `]) {
+    assert.equal(validStep('display_name', { display_name }), true);
+  }
+  assert.equal(validStep('display_name', { display_name: 'a'.repeat(61) }), false);
+});
+
+test('display name counts Unicode code points instead of UTF-16 code units', () => {
+  assert.equal(validStep('display_name', { display_name: '😀'.repeat(31) }), true);
+  assert.equal(validStep('display_name', { display_name: `  ${'😀'.repeat(60)}  ` }), true);
+  assert.equal(validStep('display_name', { display_name: '😀'.repeat(61) }), false);
+  assert.equal(validStep('display_name', { display_name: `${'a'.repeat(59)}😀` }), true);
+  assert.equal(validStep('display_name', { display_name: `${'a'.repeat(60)}😀` }), false);
+});
+
 test('priority and intent selection never exceeds three', () => {
   assert.deepEqual(toggleLimited(['story', 'characters', 'music'], 'ideas', 3), ['story', 'characters', 'music']);
   assert.deepEqual(toggleLimited(['have_fun', 'think', 'relax'], 'feel_tension', 3), ['have_fun', 'think', 'relax']);
