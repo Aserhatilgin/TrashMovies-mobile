@@ -8,9 +8,13 @@ import { Provider, useDispatch, useSelector } from 'react-redux';
 import { supabase } from '../lib/supabase';
 import { store, type AppDispatch, type RootState } from '../store';
 import { clearAuth, setAuth } from '../store/authSlice';
+import { selectAppRoute } from '../store/userDomainRouting';
+import { initializeUserDomainForSession } from '../store/userDomainSlice';
 
 function InitialLayout() {
-  const { isAuthenticated, isInitialized } = useSelector((state: RootState) => state.auth);
+  const userId = useSelector((state: RootState) => state.auth.user?.id ?? null);
+  const sessionGeneration = useSelector((state: RootState) => state.auth.sessionGeneration);
+  const route = useSelector(selectAppRoute);
   const dispatch = useDispatch<AppDispatch>();
 
   useEffect(() => {
@@ -34,6 +38,10 @@ function InitialLayout() {
   }, [dispatch]);
 
   useEffect(() => {
+    if (userId) void dispatch(initializeUserDomainForSession(userId));
+  }, [dispatch, userId, sessionGeneration]);
+
+  useEffect(() => {
     if (Platform.OS === 'web') return;
 
     const syncRefresh = (active: boolean): void => {
@@ -53,10 +61,13 @@ function InitialLayout() {
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="index" />
-      <Stack.Protected guard={isInitialized && !isAuthenticated}>
+      <Stack.Protected guard={route === 'auth'}>
         <Stack.Screen name="(auth)" />
       </Stack.Protected>
-      <Stack.Protected guard={isInitialized && isAuthenticated}>
+      <Stack.Protected guard={route === 'onboarding' || (__DEV__ && route === 'main')}>
+        <Stack.Screen name="(onboarding)" />
+      </Stack.Protected>
+      <Stack.Protected guard={route === 'main'}>
         <Stack.Screen name="(main)" />
       </Stack.Protected>
     </Stack>

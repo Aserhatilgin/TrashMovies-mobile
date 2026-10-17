@@ -96,6 +96,14 @@ export default function ProfileScreen() {
         )}
       </View>
 
+      {__DEV__ ? (
+        <Pressable accessibilityRole="button" onPress={() => router.push('/(onboarding)?preview=1')}
+          style={[styles.logoutButton, { backgroundColor: theme.inputBg, borderColor: theme.inputBorder }]}>
+          <Ionicons name="film-outline" size={20} color={theme.text} />
+          <Text style={[styles.logoutText, { color: theme.text }]}>{lang.onboarding.preview}</Text>
+        </Pressable>
+      ) : null}
+
       <TouchableOpacity
         style={[styles.logoutButton, { backgroundColor: theme.inputBg, borderColor: theme.primary }]}
         onPress={() => { void handleLogout(); }}

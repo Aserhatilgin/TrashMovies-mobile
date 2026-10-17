@@ -1,11 +1,13 @@
 import { configureStore } from '@reduxjs/toolkit';
 import authReducer from './authSlice';
 import activityReducer from './activitySlice';
+import userDomainReducer from './userDomainSlice';
 
 export const store = configureStore({
   reducer: {
     auth: authReducer,
     activity: activityReducer,
+    userDomain: userDomainReducer,
     // İleride buraya movies: movieReducer falan da ekleyeceğiz
   },
 });
