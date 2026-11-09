@@ -15,6 +15,7 @@ export default function MainStackLayout() {
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="(drawer)" />
+      <Stack.Screen name="movie-taste" />
       <Stack.Screen
         name="saved-movies"
         options={{

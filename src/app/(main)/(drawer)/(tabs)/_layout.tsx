@@ -4,6 +4,7 @@ import { PlatformPressable } from '@react-navigation/elements';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { StyleSheet, Text, View } from 'react-native';
 import { currentTheme as theme } from '../../../../constants/Colors';
+import { currentLang as lang } from '../../../../constants/Translations';
 
 function TabBar({ state, descriptors, navigation, insets }: BottomTabBarProps) {
   return (
@@ -46,6 +47,7 @@ function TabBar({ state, descriptors, navigation, insets }: BottomTabBarProps) {
 export default function TabLayout() {
   return (
     <Tabs
+      initialRouteName="index"
       tabBar={(props) => <TabBar {...props} />}
       screenOptions={{
         headerShown: false,
@@ -58,15 +60,24 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Ana Sayfa',
+          title: lang.tabs.home,
           tabBarIcon: ({ color }) => <Ionicons name="film-outline" size={24} color={color} />
+        }}
+      />
+
+      <Tabs.Screen
+        name="recommendations"
+        options={{
+          title: lang.tabs.recommendations,
+          lazy: true,
+          tabBarIcon: ({ color }) => <Ionicons name="sparkles-outline" size={24} color={color} />
         }}
       />
 
       <Tabs.Screen
         name="game"
         options={{
-          title: 'Oyun',
+          title: lang.tabs.game,
           tabBarIcon: ({ color }) => <Ionicons name="game-controller-outline" size={24} color={color} />
         }}
       />
@@ -74,7 +85,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="profile"
         options={{
-          title: 'Profil',
+          title: lang.tabs.profile,
           tabBarIcon: ({ color }) => <Ionicons name="person-outline" size={24} color={color} />
         }}
       />

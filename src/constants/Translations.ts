@@ -1,10 +1,25 @@
 // mobile/constants/Translations.ts
 export const tr = {
+  tabs: {
+    home: 'Ana Sayfa',
+    recommendations: 'Sana Özel',
+    game: 'Oyun',
+    profile: 'Profil'
+  },
+  recommendations: {
+    unavailable: 'Kişisel öneriler şu anda kullanılamıyor.'
+  },
   home: {
     loadingMovie: 'Film yükleniyor',
     loadMovieError: 'Film yüklenemedi.',
     noMovieAvailable: 'Gösterilecek film bulunamadı.',
-    backToToday: 'Bugüne dön'
+    backToToday: 'Bugüne dön',
+    noPersonalCandidate: 'Bugün tercihlerine uygun bir film bulunamadı.',
+    noSharedMovie: 'Bugün için bir film atanamadı. Daha sonra tekrar deneyebilirsin.',
+    retry: 'Tekrar Dene',
+    personalPick: 'Bugünkü seçimin',
+    sharedPick: 'Bugünkü ortak seçim',
+    history: 'Önceki filmler'
   },
   auth: {
     initializing: 'Oturum yükleniyor',
@@ -34,7 +49,7 @@ export const tr = {
     optional: 'İsteğe bağlı',
     coreProgress: 'Ana bölüm',
     optionalProgress: 'Ek seçimler',
-    preview: 'Onboarding Preview',
+    preview: 'Onboarding önizlemesi',
     previewNote: 'Geliştirme önizlemesi: cevaplar kaydedilmez.',
     optionalIntroTitle: 'Seni biraz daha tanımamızı ister misin?',
     optionalIntroBody: 'Birkaç isteğe bağlı seçim, film önerilerini ileride daha iyi ayarlamamıza yardım edebilir.',
@@ -154,6 +169,8 @@ export const tr = {
     weekdays: ['P', 'S', 'Ç', 'P', 'C', 'C', 'P']
   },
   profile: {
+    movieTaste: 'Film Zevkim',
+    developer: 'Geliştirici araçları',
     fallbackName: 'Sinema Delisi',
     activeDays: 'aktif gün',
     pendingValue: '—',
@@ -167,6 +184,26 @@ export const tr = {
     savedError: 'Kaydedilen filmler yüklenemedi.',
     loadingSaved: 'Kaydedilen filmler yükleniyor',
     logout: 'Çıkış Yap'
+  },
+  movieTaste: {
+    saved: 'Film zevkin güncellendi.',
+    edit: 'Düzenle', save: 'Değişiklikleri Kaydet', cancel: 'Vazgeç',
+    loading: 'Film zevkin yükleniyor', loadError: 'Film zevkin yüklenemedi.',
+    retry: 'Tekrar Dene', saving: 'Değişiklikler kaydediliyor',
+    saveError: 'Kayıt doğrulanamadı. Seçimlerin korunuyor; tekrar deneyebilirsin.',
+    conflict: 'Tercihlerin başka bir yerde değişti. Güncel tercihleri yükleyip yeniden düzenle.',
+    reload: 'Güncel Tercihleri Yükle',
+    discardTitle: 'Değişikliklerden vazgeçilsin mi?',
+    discardBody: 'Kaydetmediğin seçimler kaldırılacak.',
+    keepEditing: 'Düzenlemeye Devam Et', discard: 'Değişiklikleri Bırak',
+    none: 'Seçim yok', like: 'Sevdim', dislike: 'Bana göre değil',
+    likedGenres: 'Sevdiğin türler', dislikedGenres: 'Sevmediğin türler',
+    priorities: 'Filmde aradıkların', intents: 'İzleme niyetlerin',
+    trash: 'Çöp toleransı', discovery: 'Keşif isteği', popularity: 'Popülerlik tercihi',
+    reactions: 'Film tepkilerin', knowledge: 'Film bilgisi öz değerlendirmen',
+    editHint: 'Temel seçimler zorunludur. İsteğe bağlı seçimleri tekrar dokunarak temizleyebilirsin.',
+    reactionHint: 'Yayımlanmış 15 filmdeki tepkilerini düzenleyebilirsin. Diğer film tepkilerin korunur.',
+    requiredHint: 'Kaydetmek için temel seçimleri tamamla; türler birbirleriyle çakışmamalı.',
   },
   game: {
     score: 'Oyun Puanın',
