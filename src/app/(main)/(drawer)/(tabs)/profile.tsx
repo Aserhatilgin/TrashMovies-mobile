@@ -96,13 +96,20 @@ export default function ProfileScreen() {
         )}
       </View>
 
-      {__DEV__ ? (
+      <Pressable accessibilityRole="button" onPress={() => router.push('/(main)/movie-taste')}
+        style={[styles.logoutButton, { backgroundColor: theme.inputBg, borderColor: theme.inputBorder }]}>
+        <Ionicons name="heart-outline" size={20} color={theme.text} />
+        <Text style={[styles.logoutText, { color: theme.text }]}>{lang.profile.movieTaste}</Text>
+      </Pressable>
+
+      {__DEV__ ? <ProfileCard>
+        <Text style={[styles.sectionTitle, { color: theme.mutedText }]}>{lang.profile.developer}</Text>
         <Pressable accessibilityRole="button" onPress={() => router.push('/(onboarding)?preview=1')}
           style={[styles.logoutButton, { backgroundColor: theme.inputBg, borderColor: theme.inputBorder }]}>
           <Ionicons name="film-outline" size={20} color={theme.text} />
           <Text style={[styles.logoutText, { color: theme.text }]}>{lang.onboarding.preview}</Text>
         </Pressable>
-      ) : null}
+      </ProfileCard> : null}
 
       <TouchableOpacity
         style={[styles.logoutButton, { backgroundColor: theme.inputBg, borderColor: theme.primary }]}

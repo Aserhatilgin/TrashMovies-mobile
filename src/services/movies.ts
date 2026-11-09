@@ -1,5 +1,9 @@
 import { supabase } from '../lib/supabase';
-import type { DailyMovie, Movie } from '../types/movie';
+import type { DailyMovie, DailyMovieFeed, Movie } from '../types/movie';
+import { PERSONAL_DAILY_MOVIES_V1_ENABLED } from '../constants/Features';
+import { parseDailyMovieFeed } from '../features/daily-movies/model';
+import { istanbulDate } from '../utils/istanbulDate';
+export { istanbulDate } from '../utils/istanbulDate';
 
 const TMDB_POSTER_BASE_URL = 'https://image.tmdb.org/t/p/w500';
 
@@ -20,20 +24,6 @@ interface DailyMovieRow {
   movies: MovieRow;
 }
 
-function istanbulDate(date: Date): string {
-  const parts = new Intl.DateTimeFormat('en-US', {
-    timeZone: 'Europe/Istanbul',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  }).formatToParts(date);
-
-  const getPart = (type: Intl.DateTimeFormatPartTypes): string =>
-    parts.find((part) => part.type === type)?.value ?? '';
-
-  return `${getPart('year')}-${getPart('month')}-${getPart('day')}`;
-}
-
 function mapMovieRow(row: MovieRow): Movie {
   return {
     id: row.id,
@@ -44,14 +34,14 @@ function mapMovieRow(row: MovieRow): Movie {
   };
 }
 
-export async function fetchDailyMoviesHistory(): Promise<DailyMovie[]> {
-  const { data, error } = await supabase
+export async function fetchDailyMoviesHistory(signal?: AbortSignal): Promise<DailyMovie[]> {
+  const query = supabase
     .from('daily_movies')
     .select('scheduled_date, movies!daily_movies_movie_id_fkey(id, title, overview, poster_path, tmdb_rating)')
     .lte('scheduled_date', istanbulDate(new Date()))
     .order('scheduled_date', { ascending: false })
-    .limit(30)
-    .overrideTypes<DailyMovieRow[]>();
+    .limit(30);
+  const { data, error } = await (signal ? query.abortSignal(signal) : query).overrideTypes<DailyMovieRow[]>();
 
   if (error) {
     throw new Error('Unable to fetch daily movie history.');
@@ -61,4 +51,15 @@ export async function fetchDailyMoviesHistory(): Promise<DailyMovie[]> {
     scheduledDate: row.scheduled_date,
     movie: mapMovieRow(row.movies),
   })).reverse();
+}
+
+export async function fetchDailyMovieFeed(userId: string, signal?: AbortSignal): Promise<DailyMovieFeed> {
+  if (!PERSONAL_DAILY_MOVIES_V1_ENABLED) {
+    return { userId, today: istanbulDate(new Date()), status: 'legacy', items: await fetchDailyMoviesHistory(signal) };
+  }
+  const query = supabase.rpc('get_daily_movie_feed', { p_expected_user_id: userId });
+  const { data, error } = await (signal ? query.abortSignal(signal) : query);
+  // A query/transport failure is never converted into an empty candidate pool.
+  if (error) throw new Error('Unable to fetch personal daily movie feed.');
+  return parseDailyMovieFeed(data, userId, posterUrlFromPath);
 }
