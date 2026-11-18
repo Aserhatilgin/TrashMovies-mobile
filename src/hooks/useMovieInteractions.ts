@@ -1,4 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
+
+import { useFocusEffect } from 'expo-router';
 
 import {
   fetchMovieInteractions,
@@ -25,7 +27,7 @@ export function useMovieInteractions(movieIds: string[]): MovieInteractionsState
   const [pendingMovieIds, setPendingMovieIds] = useState<string[]>([]);
   const pending = useRef(new Set<string>());
 
-  useEffect(() => {
+  useFocusEffect(useCallback(() => {
     let active = true;
     setIsLoading(true);
     setHasError(false);
@@ -38,7 +40,7 @@ export function useMovieInteractions(movieIds: string[]): MovieInteractionsState
       if (active) setIsLoading(false);
     });
     return () => { active = false; };
-  }, [movieIds]);
+  }, [movieIds]));
 
   const mutate = useCallback(async (
     movieId: string,

@@ -7,7 +7,12 @@ export const tr = {
     profile: 'Profil'
   },
   recommendations: {
-    unavailable: 'Kişisel öneriler şu anda kullanılamıyor.'
+    unavailable: 'Kişisel öneriler şu anda kullanılamıyor.',
+    weeklyTitle: 'Bu haftaki seçkin',
+    weeklyCount: '{count} film',
+    weeklyEmpty: 'Bu hafta tercihlerine uygun bir film bulunamadı.',
+    weeklyLoading: 'Haftalık seçkin yükleniyor',
+    weeklyError: 'Haftalık seçkin yüklenemedi.',
   },
   home: {
     loadingMovie: 'Film yükleniyor',

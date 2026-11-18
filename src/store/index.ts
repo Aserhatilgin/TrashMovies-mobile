@@ -9,6 +9,8 @@ import dailyMoviesReducer from './dailyMoviesSlice';
 import { fetchDailyMovieFeed } from '../services/movies';
 import sharedDailyMoviesReducer from './sharedDailyMoviesSlice';
 import { fetchSharedDailyMovieFeed } from '../services/sharedDailyMovies';
+import weeklyMoviesReducer from './weeklyMoviesSlice';
+import { fetchWeeklyMovieCollection } from '../services/weeklyMovies';
 
 export const store = configureStore({
   reducer: {
@@ -18,10 +20,11 @@ export const store = configureStore({
     movieTaste: movieTasteReducer,
     dailyMovies: dailyMoviesReducer,
     sharedDailyMovies: sharedDailyMoviesReducer,
+    weeklyMovies: weeklyMoviesReducer,
     // İleride buraya movies: movieReducer falan da ekleyeceğiz
   },
   middleware: (getDefaultMiddleware) => getDefaultMiddleware({
-    thunk: { extraArgument: { initializeUserDomain, fetchMovieTaste, saveMovieTaste, fetchDailyMovieFeed, fetchSharedDailyMovieFeed } },
+    thunk: { extraArgument: { initializeUserDomain, fetchMovieTaste, saveMovieTaste, fetchDailyMovieFeed, fetchSharedDailyMovieFeed, fetchWeeklyMovieCollection } },
   }),
 });
 
