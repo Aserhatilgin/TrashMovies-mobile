@@ -3,30 +3,30 @@ import type { DailyMovieFeed } from '../../types/movie';
 import { clearAuth, setAuth } from '../../store/authSlice.ts';
 
 export interface DailySession { userId: string; sessionGeneration: number }
-export interface DailyMoviesState {
+export interface DailyMoviesState<Feed = DailyMovieFeed> {
   userId: string | null;
   sessionGeneration: number;
-  feed: DailyMovieFeed | null;
+  feed: Feed | null;
   requestId: string | null;
   hasError: boolean;
 }
 
-// Shared and personal feeds use identical session/race protection, but have
-// separate state keys, actions and injected services. Neither can replace the other.
-export function createDailyFeedSlice<Name extends string, Services>(
+// Shared daily, legacy personal daily and weekly feeds share session/race
+// protection, with separate state keys, actions and injected services.
+export function createDailyFeedSlice<Name extends string, Services, Feed extends { userId: string } = DailyMovieFeed>(
   name: Name,
-  fetchFeed: (services: Services, userId: string, signal: AbortSignal) => Promise<DailyMovieFeed>,
+  fetchFeed: (services: Services, userId: string, signal: AbortSignal) => Promise<Feed>,
 ) {
-  type State = { auth: { user: { id: string } | null; sessionGeneration: number } } & Record<Name, DailyMoviesState>;
-  const empty = (userId: string | null = null, sessionGeneration = 0): DailyMoviesState => ({
+  type State = { auth: { user: { id: string } | null; sessionGeneration: number } } & Record<Name, DailyMoviesState<Feed>>;
+  const empty = (userId: string | null = null, sessionGeneration = 0): DailyMoviesState<Feed> => ({
     userId, sessionGeneration, feed: null, requestId: null, hasError: false,
   });
   const current = (state: State, session: DailySession): boolean => {
-    const feed = state[name] as DailyMoviesState;
+    const feed = state[name] as DailyMoviesState<Feed>;
     return state.auth.user?.id === session.userId && state.auth.sessionGeneration === session.sessionGeneration
       && feed.userId === session.userId && feed.sessionGeneration === session.sessionGeneration;
   };
-  const load = createAsyncThunk<DailyMovieFeed, DailySession, { state: State; extra: Services }>(
+  const load = createAsyncThunk<Feed, DailySession, { state: State; extra: Services }>(
     name + '/load',
     async (session, { extra, getState, signal }) => {
       const feed = await fetchFeed(extra, session.userId, signal);
@@ -49,7 +49,7 @@ export function createDailyFeedSlice<Name extends string, Services>(
         .addCase(load.fulfilled, (state, action) => {
           if (state.requestId !== action.meta.requestId || state.userId !== action.meta.arg.userId
             || state.sessionGeneration !== action.meta.arg.sessionGeneration) return;
-          state.feed = action.payload; state.requestId = null; state.hasError = false;
+          return { ...state, feed: action.payload, requestId: null, hasError: false };
         })
         .addCase(load.rejected, (state, action) => {
           if (state.requestId !== action.meta.requestId) return;
